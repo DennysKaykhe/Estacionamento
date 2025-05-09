@@ -1,0 +1,1 @@
+﻿double perma, esta, valet, lavagem, total;

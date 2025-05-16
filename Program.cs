@@ -1,5 +1,24 @@
-﻿double perma, total, HorasAdicionais, ValorDasHorasAdcionais, Diária, Lavagem, valet;
-string tamanho, serviçoV, serviçoL;
+﻿const decimal HorasAdicionaisGrandes = 20;
+const decimal HorasAdicionaisPequenas = 50;
+const decimal DiáriaGrande = 80;
+const decimal DiáriaPequena = 50;
+const decimal LavagemGrande = 100;
+const decimal LavagemPequena = 50;
+const double ValetMultiplicar = 0.2;
+const decimal PrimeiraHora = 20;
+
+const int TempoDiaria = 5 * 60;
+const int TempoTolerancia = 5;
+const int MaxTempoPermanencia = 12 * 60;
+
+int perma;
+string tamanho;
+bool serviçoV, serviçoL;
+
+decimal Pperma = 0;
+decimal Pvalet = 0;
+decimal Plavagem = 0;
+decimal Ptotal = 0;
 
 Console.Clear();
 
@@ -8,99 +27,86 @@ Console.WriteLine("--- Estacionamento ---\n");
 Console.Write("Tamanho do veículo (P/G).....: ");
 tamanho = Console.ReadLine()!.ToUpper().Trim();
 
-if (tamanho != "P" && tamanho != "G");
+if (tamanho != "P" && tamanho != "G")
 {
-    Console.WriteLine("Tamanho inválido! Por favor aperte qualquer tecla para voltar a questão.");
-    Console.ReadKey();
+    Console.WriteLine("Tamanho inválido!");
     return;
 }
-    if (tamanho == "P")
-    {
-        HorasAdicionais = 0.16666666666;
-        Diária = 50;
-        Lavagem = 50;
-    }
-    if (tamanho == "G")
-    {
-        HorasAdicionais = 0.33333333333;
-        Diária = 80;
-        Lavagem = 100;
-    }
-
 
 Console.Write("Tempo de permanência (min)...: ");
-perma = Convert.ToDouble(Console.ReadLine());
+perma = Convert.ToInt16(Console.ReadLine());
 
-if (perma >= 720)
+if (perma <= 0 || perma > MaxTempoPermanencia)
 {
-    Console.WriteLine("Não aceitamos tempo de permanência acima de 12 horas! Por favor aperte qualquer tecla para voltar a questão.");
-    Console.ReadKey();
+    Console.WriteLine("Não aceitamos tempo de permanência acima de 12 horas!");
     return;
 }
 
 Console.Write("Serviço de valet (S/N).......: ");
-serviçoV = Console.ReadLine()!.ToUpper().Trim();
-
-if (serviçoV != "S" && serviçoV != "N");
-    {
-        Console.WriteLine("Resposta inválida! Por favor aperte qualquer tecla para voltar a questão.");
-        Console.ReadKey();
-        return;
-    }
-if (serviçoV == "S")
-    {
-        valet = 1.20;
-    }
-    else if (serviçoV == "N")
-    {
-        valet = 0;
-    }
+serviçoV = Console.ReadLine()!.Trim().Substring(0, 1).ToUpper() == "S";
 
 Console.Write("Serviço de lavagem (S/N).....: ");
-serviçoL = Console.ReadLine()!.ToUpper().Trim();
+serviçoL = Console.ReadLine()!.Trim().Substring(0, 1).ToUpper() == "S";
 
-if (serviçoL != "S" && serviçoL != "N")
+
+if (perma >= TempoDiaria)
 {
-    Console.WriteLine("Resposta inválida! Por favor aperte qualquer tecla para voltar a questão.");
-    Console.ReadKey();
-    return;
+    if (tamanho == "P")
+    {
+        Pperma = DiáriaPequena;
+    }
+    else
+    {
+        Pperma = DiáriaGrande;
+    }
 }
-    else if (serviçoL == "S")
-    {
-        // Tudo segue normalmente;
-    }
-        else if (serviçoL == "N")
-    {
-        Lavagem = 0;
-    }
-
-double EstacionamentoFinal;
-
-if (perma <= 60)
+else
 {
-    EstacionamentoFinal = 20;
+    int horasPermanencia = (int)(perma / 60);
+    int minutosRestantes = perma % 60;
+
+    if (minutosRestantes > TempoTolerancia)
+    {
+        horasPermanencia++;
+    }
+
+    Pperma = PrimeiraHora;
+    int horasAdicionais = horasPermanencia - 1;
+
+    if (horasAdicionais > 0)
+    {
+        if (tamanho == "P")
+        {
+            Pperma += horasAdicionais * HorasAdicionaisPequenas;
+        }
+        else
+        {
+            Pperma += horasAdicionais * HorasAdicionaisGrandes;
+        }
+    }
 }
-    else if (perma > 60 && perma < 300)
+
+if (serviçoV)
+{
+    Pvalet = Pperma * Convert.ToDecimal(ValetMultiplicar);
+}
+
+if (serviçoL)
+{
+    if (tamanho == "P")
     {
-    ValorDasHorasAdcionais = perma * HorasAdicionais;
+        Plavagem += LavagemPequena;
     }
-    else if (perma >= 300)
+    else
     {
-        EstacionamentoFinal = Diária;
+        Plavagem += LavagemGrande;
     }
+}
 
-EstacionamentoFinal = EstacionamentoFinal * valet;
+Ptotal = Pperma + Pvalet + Plavagem;
 
-Console.Write($"\nEstacionamento..: R$ {EstacionamentoFinal}");
-
-valet = EstacionamentoFinal * 0.20;
-
-Console.Write($"Valet...........: R$ {valet}");
-
-Console.Write($"Lavagem.........: R$ {Lavagem}");
-
+Console.WriteLine($"\nEstacionamento..: {Pperma}");
+Console.WriteLine($"Valet...........: {Pvalet:C}");
+Console.WriteLine($"Lavagem.........: {Plavagem:C}");
 Console.WriteLine("--------------------------------\n");
-
-total = EstacionamentoFinal + Lavagem;
-
-Console.WriteLine($"Total...........: R$ {total}");
+Console.WriteLine($"Total...........: {Ptotal:C}");
